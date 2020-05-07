@@ -586,6 +586,20 @@ var app = {
       }
     },
 
+    arrayFormatter: function (value, row, index) {
+      if (value && value.length > 0) {
+        if (value.find(element => element.includes('http')).length > 0){
+          let values = value;
+          value.forEach((value, index, values) => {
+            values[index] = `<img src='${value}'/>`
+          })
+          return values
+        } else {
+          return value
+        }
+      }
+    },
+
     geomFormatter: function(value, row, index) {
       if (value) {
         return JSON.stringify(value);
@@ -615,8 +629,11 @@ var app = {
               checkbox: true
             });
           } else {
-            for (var i = 0; i < json.rows.length; i++) {
-              if (json.rows[i][value.name] && JSON.stringify(json.rows[i][value.name]).indexOf("http") === 1) {
+            for (var i = 0; i < json.rows.length; i++) for (var i = 0; i < json.rows.length; i++) {
+              if (Array.isArray(json.rows[i][value.name])) {
+                value.formatter = app.queryModule.arrayFormatter;
+              } 
+              else if (json.rows[i][value.name] && JSON.stringify(json.rows[i][value.name]).indexOf("http") === 1) {
                 value.formatter = app.queryModule.urlFormatter;
                 if (JSON.stringify(json.rows[i][value.name]).includes("type=photo")) {
                   value.width = 250;
