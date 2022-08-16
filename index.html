@@ -14,11 +14,6 @@
     <link rel="apple-touch-icon" sizes="76x76" href="fulcrum-icon-76x76.png">
     <link rel="apple-touch-icon" sizes="120x120" href="fulcrum-icon-120x120.png">
     <link rel="apple-touch-icon" sizes="152x152" href="fulcrum-icon-152x152.png">
-    <link rel="stylesheet" href="assets/vendor/bootstrap-3.3.7/css/bootstrap.min.css">
-    <link rel="stylesheet" href="assets/vendor/bootstrap-table-1.11.0/bootstrap-table.min.css">
-    <link rel="stylesheet" href="assets/vendor/leaflet-1.5.1/leaflet.css">
-    <link rel="stylesheet" href="assets/vendor/codemirror-5.18.2/codemirror.css">
-    <link rel="stylesheet" href="assets/css/app.css">
   </head>
   <body>
     <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
@@ -99,12 +94,12 @@
       </div>
     </div>
 
-    <div class="modal fade" id="sqlModal" tabindex="-1" role="dialog">
+    <div class="modal fade" id="sqlModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-            <h4 class="modal-title">SQL Query<span id="record-count" class="badge pull-right" style="margin-right: 15px; margin-top: 2px;"></span></h4>
+            <h5 class="modal-title" id="exampleModalLabel">SQL Query<span id="record-count" class="badge pull-right" style="margin-right: 15px; margin-top: 2px;"></span></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
             <textarea class="form-control" rows="5" id="query" placeholder='SELECT * FROM "My app"'></textarea>
@@ -222,13 +217,8 @@
       </div>
     </div>
 
-    <script src="assets/vendor/jquery-2.2.4.min.js"></script>
-    <script src="assets/vendor/bootstrap-3.3.7/js/bootstrap.min.js"></script>
-    <script src="assets/vendor/PapaParse-4.1.2/papaparse.min.js"></script>
-    <script src="assets/vendor/bootstrap-table-1.11.0/bootstrap-table.min.js"></script>
-    <script src="assets/vendor/leaflet-1.5.1/leaflet.js"></script>
-    <script src="assets/vendor/codemirror-5.18.2/codemirror-compressed.js"></script>
-    <script src="assets/vendor/FileSaver/FileSaver.min.js"></script>
-    <script src="assets/js/app.js"></script>
+    <link rel="stylesheet" href="dist/bundle.css">
+    <link rel="stylesheet" href="assets/css/app.css">
+    <script src="dist/bundle.js"></script>
   </body>
 </html>

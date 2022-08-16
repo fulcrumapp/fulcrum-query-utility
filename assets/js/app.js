@@ -1,3 +1,52 @@
+const $ = require('jquery');
+const Papa = require('papaparse');
+const L = require('leaflet');
+const { EditorView } = require('codemirror');
+const { saveAs } = require('file-saver');
+const bootstrap = require('bootstrap');
+
+require('bootstrap-table');
+
+// css
+require('bootstrap/dist/css/bootstrap.css');
+require('bootstrap-table/dist/bootstrap-table.css');
+require('leaflet/dist/leaflet.css');
+
+const { syntaxHighlighting, defaultHighlightStyle } = require('@codemirror/language');
+const { sql } = require('@codemirror/lang-sql');
+
+const MODALS = {};
+
+function modal(selector, options) {
+  if (MODALS[selector]) {
+    return MODALS[selector];
+  }
+
+  MODALS[selector] = new bootstrap.Modal(document.querySelector(selector), options);
+
+  return MODALS[selector];
+}
+
+function editorFromTextArea(textarea, extensions) {
+  let view = new EditorView({doc: textarea.value, extensions});
+  textarea.parentNode.insertBefore(view.dom, textarea);
+  textarea.style.display = "none";
+  if (textarea.form) textarea.form.addEventListener("submit", () => {
+    textarea.value = view.state.doc.toString();
+  })
+  return view;
+}
+
+function getCode() {
+  return app.editor.state.doc.toString();
+}
+
+function setCode(code) {
+  app.editor.dispatch({
+    changes: {from: 0, to: app.editor.state.doc.length, insert: code}
+  });
+}
+
 $(document).ready(function() {
   app.init();
   app.authModule.init();
@@ -6,7 +55,6 @@ $(document).ready(function() {
 });
 
 var app = {
-
   editor: null,
   currentFields: null,
   currentRows: null,
@@ -20,7 +68,7 @@ var app = {
 
   bindUIActions: function() {
     $("#about-btn").click(function() {
-      $("#aboutModal").modal("show");
+      modal("#aboutModal").show();
       $(".navbar-collapse.in").collapse("hide");
       return false;
     });
@@ -33,16 +81,21 @@ var app = {
   },
 
   buildEditor: function() {
-    app.editor = CodeMirror.fromTextArea($("#query")[0], {
-      mode: "text/x-sql",
-      lineNumbers: true,
-      lineWrapping: true,
-      viewportMargin: Infinity
-    });
+    app.editor = editorFromTextArea($("#query")[0], [
+      sql(),
+      syntaxHighlighting(defaultHighlightStyle),
+      EditorView.updateListener.of((viewUpdate) => {
+        if (viewUpdate.docChanged) {
+          // Document changed
+          // sessionStorage.setItem("fulcrum_query_value", cm.getValue());
+        }
+      })
+    ]);
 
-    app.editor.on("change", function(cm, change) {
-      sessionStorage.setItem("fulcrum_query_value", cm.getValue());
-    });
+    console.log('apppppp', app.editor);
+  //   app.editor.on("change", function(cm, change) {
+      
+  //   });
   },
 
   authModule: {
@@ -52,11 +105,11 @@ var app = {
 
     setupSession: function (token) {
       sessionStorage.setItem("fulcrum_query_token", btoa(token));
-      app.editor.getDoc().setValue("SELECT * FROM tables;");
+      setCode("SELECT * FROM tables;");
       $("#saved-queries-select").val("SELECT * FROM tables;");
       app.queryModule.executeQuery(1, {});
       app.queryModule.fetchQueries();
-      $("#loginModal").modal("hide");
+      modal("#loginModal").hide();
       $("#logout-btn").removeClass("hide");
     },
 
@@ -115,11 +168,11 @@ var app = {
 
     checkLogin: function() {
       if (!sessionStorage.getItem("fulcrum_query_token")) {
-        $("#loginModal").modal("show");
+        modal("#loginModal").show();
         $(".modal-backdrop").css("opacity", "1");
       } else {
         $("#logout-btn").removeClass("hide");
-        $("#loginModal").modal("hide");
+        modal("#loginModal").hide();
         $(".modal-backdrop").css("opacity", "0.5");
         app.queryModule.fetchQueries();
         app.queryModule.initialQuery();
@@ -175,11 +228,11 @@ var app = {
     bindUIActions: function() {
       $("#map-btn").click(function() {
         if (app.currentRows && app.currentGeometryColumn) {
-          $("#mapModal").on("shown.bs.modal", function() {
+          modal("#mapModal").on("shown.bs.modal", function() {
             app.mapModule.map.invalidateSize();
             app.mapModule.mapData();
           });
-          $("#mapModal").modal("show");
+          modal("#mapModal").show();
         } else {
           alert("Table must include geometry column!");
         }
@@ -273,7 +326,7 @@ var app = {
           complete: function(results) {
             localStorage.setItem("fulcrum_queries", JSON.stringify(results.data));
             app.queryModule.fetchQueries();
-            app.editor.getDoc().setValue($("#saved-queries-select option:first-child").val());
+            setCode($("#saved-queries-select option:first-child").val());
             alert("Queries imported successfully!");
           }
         });
@@ -288,7 +341,7 @@ var app = {
       });
 
       $("#saved-queries-select").change(function() {
-        app.editor.getDoc().setValue($("#saved-queries-select").val());
+        setCode($("#saved-queries-select").val());
       });
 
       $(".org-picker-form").submit(function () {
@@ -326,7 +379,7 @@ var app = {
       });
 
       $(".launch-query-btn").click(function() {
-        $("#sqlModal").modal("show");
+        modal("#sqlModal").show();
         return false;
       });
 
@@ -336,7 +389,7 @@ var app = {
       });
 
       $("#save-query-btn").click(function() {
-        if (app.editor.getDoc().getValue() !== "SELECT * FROM tables;") {
+        if (getCode() !== "SELECT * FROM tables;") {
           app.queryModule.saveQuery();
         }
         return false;
@@ -426,7 +479,7 @@ var app = {
     },
 
     executeQuery: function(page, result) {
-      var query = app.editor.getDoc().getValue();
+      var query = getCode();
       var instance = $("#instance").val();
       if (query.length > 0) {
         $("#loading").show();
@@ -459,7 +512,7 @@ var app = {
             $("#loading").hide();
             $("#error-alert").show();
             $("#error-message").html(jqXHR.responseText);
-            $("#sqlModal").modal("show");
+            modal("#sqlModal").show();
           },
           statusCode: {
             401: function() {
@@ -476,7 +529,7 @@ var app = {
     saveQuery: function() {
       var name = prompt("Query name");
       if (name !== null) {
-        var query = app.editor.getDoc().getValue();
+        var query = getCode();
         var queries;
         if (localStorage.getItem("fulcrum_queries")) {
           queries = JSON.parse(localStorage.getItem("fulcrum_queries"));
@@ -505,7 +558,7 @@ var app = {
       localStorage.setItem("fulcrum_queries", JSON.stringify(queries));
       app.queryModule.fetchQueries();
       $("#saved-queries-select").val($("#saved-queries-select option:first-child").val());
-      app.editor.getDoc().setValue($("#saved-queries-select option:first-child").val());
+      setCode($("#saved-queries-select option:first-child").val());
     },
 
     exportQueries: function() {
@@ -538,15 +591,15 @@ var app = {
         }
       }
       if (urlParams.q) {
-        app.editor.getDoc().setValue(decodeURI(urlParams.q));
-        $("#sqlModal").modal("show");
+        setCode(decodeURI(urlParams.q));
+        modal("#sqlModal").show();
         app.queryModule.executeQuery(1, {});
       } else {
         var savedQuery = sessionStorage.getItem("fulcrum_query_value");
         if (savedQuery) {
-          app.editor.getDoc().setValue(savedQuery);
+          setCode(savedQuery);
         } else {
-          app.editor.getDoc().setValue("SELECT * FROM tables;");
+          setCode("SELECT * FROM tables;");
           $("#saved-queries-select").val("SELECT * FROM tables;");
         }
         app.queryModule.executeQuery(1, {});

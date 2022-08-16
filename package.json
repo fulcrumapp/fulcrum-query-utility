@@ -1,0 +1,30 @@
+{
+  "name": "fulcrum-query-utility",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:fulcrumapp/fulcrum-query-utility.git",
+  "author": "Fulcrum",
+  "license": "MIT",
+  "scripts": {
+    "build": "esbuild assets/js/app.js --bundle --outfile=dist/bundle.js --loader:.png=dataurl",
+    "watch": "esbuild assets/js/app.js --bundle --outfile=dist/bundle.js --loader:.png=dataurl --watch",
+    "start": "concurrently \"yarn watch\" \"yarn serve\""
+  },
+  "dependencies": {
+    "@codemirror/lang-sql": "^6.2.0",
+    "@codemirror/language": "^6.2.1",
+    "@popperjs/core": "^2.11.6",
+    "bootstrap": "^5.2.0",
+    "bootstrap-table": "^1.20.2",
+    "codemirror": "^6.0.1",
+    "file-saver": "^2.0.5",
+    "jquery": "^3.6.0",
+    "leaflet": "^1.8.0",
+    "papaparse": "^5.3.2"
+  },
+  "devDependencies": {
+    "concurrently": "^7.3.0",
+    "esbuild": "^0.15.3",
+    "serve": "^14.0.1"
+  }
+}
